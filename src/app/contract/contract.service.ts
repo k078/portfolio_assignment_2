@@ -31,7 +31,7 @@ export class ContractService {
 			//Get the organisation
 			let orgId: any = contract.organisation;
 			contract.organisation =
-			 	await this.organisationService.getOrganisationById(orgId);
+				await this.organisationService.getOrganisationById(orgId);
 
 			//Give the optional fields the correct reference
 			for await (let responseField of contract.responses) {
@@ -63,13 +63,23 @@ export class ContractService {
 		}
 	}
 
-	async getContractById(id: string): Promise<Contract> {
+	async getContractById(id: string, userId: string): Promise<Contract> {
 		const contract = await this.contractModel
 			.findOne({ id: id })
 			.populate('organisation', 'id');
 
 		if (contract == null) {
 			throw new HttpException('Contract not found', HttpStatus.NOT_FOUND);
+		}
+
+		const userOrganisations =
+			await this.userService.getOrganisationsFromUser(userId);
+		const orgIds = userOrganisations['organisations'].map((o) =>
+			o._id.toString(),
+		);
+
+		if (!orgIds.includes(contract.organisation['_id'].toString())) {
+			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 		}
 
 		contract.organisation =
@@ -135,13 +145,24 @@ export class ContractService {
 		return result.contracts.length;
 	}
 
-	async editContract(id: string, contract: Contract): Promise<string> {
-		return await this.contractModel.findOneAndUpdate(
-			{ id: id },
-			contract,
-			{
-				new: true,
-			},
-		);
-	}
+	async editContract(id: string, contract: Contract, userId: string): Promise<string> {
+    const existing = await this.contractModel
+        .findOne({ id: id })
+        .populate('organisation', 'id');
+
+    if (existing == null) {
+        throw new HttpException('Contract not found', HttpStatus.NOT_FOUND);
+    }
+
+    const userOrganisations = await this.userService.getOrganisationsFromUser(userId);
+    const orgIds = userOrganisations['organisations'].map((o) => o._id.toString());
+
+    if (!orgIds.includes(existing.organisation['_id'].toString())) {
+        throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    }
+
+    return await this.contractModel.findOneAndUpdate({ id: id }, contract, {
+        new: true,
+    });
+}
 }

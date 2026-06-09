@@ -66,33 +66,34 @@ export class AuthService {
 			orgId,
 		);
 
-		const user = await this.userModel.findOneAndUpdate(
-			{
-				id: userId
-			},
-			{
-				name,
-				email,
-				jobTitle,
-				role,
-				organisations,
-			}, 
-			{
-				new: true,
-			}
-		).catch((err) => {
-			if (err.code == 11000) {
-				throw new HttpException(
-					'Email `' + email + '` already exists',
-					HttpStatus.BAD_REQUEST,
-				);
-			}
-		});
+		const user = await this.userModel
+			.findOneAndUpdate(
+				{
+					id: userId,
+				},
+				{
+					name,
+					email,
+					jobTitle,
+					role,
+					organisations,
+				},
+				{
+					new: true,
+				},
+			)
+			.catch((err) => {
+				if (err.code == 11000) {
+					throw new HttpException(
+						'Email `' + email + '` already exists',
+						HttpStatus.BAD_REQUEST,
+					);
+				}
+			});
 		return user;
 	}
 
 	async editUser(userId: string, identity: any) {
-		
 		const oldUser = await this.identityModel.findOne({
 			id: userId,
 		});
@@ -137,8 +138,10 @@ export class AuthService {
 				const oldPassword = identity.oldPassword;
 
 				if (identity.oldPassword != null) {
-					
-					if (!oldUser || !(await compare(oldPassword, oldUser.hash))) {
+					if (
+						!oldUser ||
+						!(await compare(oldPassword, oldUser.hash))
+					) {
 						throw new HttpException(
 							'Old password is incorrect',
 							HttpStatus.UNAUTHORIZED,
@@ -242,6 +245,7 @@ export class AuthService {
 			sign(
 				{ id: user.id },
 				process.env.JWT_SECRET,
+				{ expiresIn: '60s' },
 				(err: Error, token: string) => {
 					if (err) reject(err);
 					else resolve(token);

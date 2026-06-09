@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import {
+	Body,
+	Controller,
+	Delete,
+	Get,
+	Param,
+	Post,
+	Put,
+} from '@nestjs/common';
 
 import { InjectToken, Token } from '../auth/token.decorator';
 import { ContractService } from './contract.service';
@@ -18,10 +26,12 @@ export class ContractController {
 	}
 
 	@Get(':id')
-	async getContractById(@Param('id') id: string): Promise<Contract> {
-		return await this.contractService.getContractById(id);
+	async getContractById(
+		@Param('id') id: string,
+		@InjectToken() token: Token,
+	): Promise<Contract> {
+		return await this.contractService.getContractById(id, token.id);
 	}
-
 	@Get(':id/fields')
 	async getContractByIdWithFields(
 		@Param('id') id: string,
@@ -35,8 +45,16 @@ export class ContractController {
 	}
 
 	@Put(':id')
-	async editContract(@Param('id') id: string, @Body() contractToEdit: Contract): Promise<string> {
-		return await this.contractService.editContract(id, contractToEdit);
+	async editContract(
+		@Param('id') id: string,
+		@Body() contractToEdit: Contract,
+		@InjectToken() token: Token,
+	): Promise<string> {
+		return await this.contractService.editContract(
+			id,
+			contractToEdit,
+			token.id,
+		);
 	}
 
 	@Delete(':id')

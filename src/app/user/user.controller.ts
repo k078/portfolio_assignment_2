@@ -1,6 +1,7 @@
 import {
 	Body,
-	Controller, Delete,
+	Controller,
+	Delete,
 	Get,
 	HttpException,
 	HttpStatus,
@@ -19,7 +20,10 @@ import { Organisation } from '../organisation/organisation.schema';
 
 @Controller('user')
 export class UserController {
-	constructor(private readonly userService: UserService, private organisationService: OrganisationService) {}
+	constructor(
+		private readonly userService: UserService,
+		private organisationService: OrganisationService,
+	) {}
 
 	// ##### User #####
 	@Get('info')
@@ -37,21 +41,31 @@ export class UserController {
 	}
 
 	@Get('/organisations')
-	async getOrganisationsFromUser(@InjectToken() token: Token): Promise<Organisation[]> {
+	async getOrganisationsFromUser(
+		@InjectToken() token: Token,
+	): Promise<Organisation[]> {
 		return await this.userService.getOrganisationsFromUser(token.id);
 	}
 
 	@Get(':id/organisation')
-	async getUsersFromOrganisation(@Param('id') organisationId: string): Promise<User[]> {
-		const org = await this.organisationService.getOrganisationByIdWithoutImg(organisationId)
+	async getUsersFromOrganisation(
+		@Param('id') organisationId: string,
+	): Promise<User[]> {
+		const org =
+			await this.organisationService.getOrganisationByIdWithoutImg(
+				organisationId,
+			);
 		return await this.userService.getUsersFromOrganisation(org);
 	}
-
 
 	@Get(':id')
 	async getUserById(
 		@Param('id') userId: string,
+		@InjectToken() token: Token,
 	): Promise<User> {
+		if (token.id !== userId) {
+			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+		}
 		return await this.userService.getUserById(userId);
 	}
 
@@ -88,8 +102,9 @@ export class UserController {
 		@Param('id') idToBeDeleted: string,
 		@InjectToken() token: Token,
 	): Promise<User> {
-		return await this.userService.deleteIdentityByIdAndUserById(idToBeDeleted, token.id);
+		return await this.userService.deleteIdentityByIdAndUserById(
+			idToBeDeleted,
+			token.id,
+		);
 	}
-
-
 }

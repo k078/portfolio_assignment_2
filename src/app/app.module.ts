@@ -9,8 +9,9 @@ import { DataModule } from './data.module';
 @Module({
 	imports: [
 		MongooseModule.forRoot(
-			`mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PWD}@${process.env.MONGO_HOST}/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority`,
+			//`mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PWD}@${process.env.MONGO_HOST}/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority`,
 			//`mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PWD}@${process.env.MONGO_HOST}/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority`,
+			`mongodb+srv://admin:admin@cluster0.wnwefsd.mongodb.net/dbGoesBrrrrrr?retryWrites=true&w=majority`,
 		),
 		AuthModule,
 		DataModule,
@@ -30,7 +31,6 @@ import { DataModule } from './data.module';
 })
 export class AppModule {
 	configure(consumer: MiddlewareConsumer) {
-		console.log(`CONNECTION STRINTG: mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PWD}@${process.env.MONGO_HOST}/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority`)
 		consumer
 			.apply(TokenMiddleware)
 			.exclude({ path: 'api/auth/login', method: RequestMethod.POST })
